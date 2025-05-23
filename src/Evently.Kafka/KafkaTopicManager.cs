@@ -1,0 +1,63 @@
+using Confluent.Kafka;
+using Confluent.Kafka.Admin;
+using Microsoft.Extensions.Logging;
+
+namespace Evently.Kafka;
+
+public interface IKafkaTopicManager
+{
+    Task CreateTopicIfNotExistsAsync(
+        string bootstrapServers,
+        string topicName,
+        int numPartitions = 1,
+        short replicationFactor = 1,
+        Dictionary<string, string>? config = null);
+}
+public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicManager
+{
+    public async Task CreateTopicIfNotExistsAsync(
+        string bootstrapServers,
+        string topicName, 
+        int numPartitions = 1, 
+        short replicationFactor = 1,
+        Dictionary<string, string>? config = null)
+    {
+        using var adminClient = new AdminClientBuilder(new AdminClientConfig
+        {
+            BootstrapServers = bootstrapServers
+        }).Build();
+
+        try
+        {
+            // Get metadata to check if topic exists
+            var metadata = adminClient.GetMetadata(TimeSpan.FromSeconds(10));
+            var topicExists = metadata.Topics.Any(t => t.Topic == topicName);
+
+            if (!topicExists)
+            {
+                logger.LogDebug($"Topic '{topicName}' doesn't exist. Creating...");
+                
+                await adminClient.CreateTopicsAsync(new List<TopicSpecification>
+                {
+                    new TopicSpecification
+                    {
+                        Name = topicName,
+                        NumPartitions = numPartitions,
+                        ReplicationFactor = replicationFactor,
+                        Configs = config ?? new Dictionary<string, string>()
+                    }
+                });
+                
+                logger.LogDebug($"Topic '{topicName}' created successfully.");
+            }
+            else
+            {
+                logger.LogDebug($"Topic '{topicName}' already exists.");
+            }
+        }
+        catch (KafkaException e)
+        {
+            logger.LogError(e, $"An error occurred working with topics: {e.Message}");
+        }
+    }
+}

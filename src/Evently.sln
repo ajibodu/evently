@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evently.Core", "Evently.Core\Evently.Core.csproj", "{8736BEFC-BC9F-443E-BF75-87115F13A7B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evently.Redis", "Evently.Redis\Evently.Redis.csproj", "{952EE9C4-DA80-4884-90F4-FA3C1D89FC77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evently.Kafka", "Evently.Kafka\Evently.Kafka.csproj", "{AB96AFAC-DC45-4F4B-9D49-7DBE5C47A69F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWorker", "TestWorker\TestWorker.csproj", "{9464D0D6-0CC1-4C7E-BA74-49D8A371B85B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evently.Azure.ServiceBus", "Evently.Azure.ServiceBus\Evently.Azure.ServiceBus.csproj", "{0E28050A-F650-4382-ACCE-C7F774780EFA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8736BEFC-BC9F-443E-BF75-87115F13A7B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8736BEFC-BC9F-443E-BF75-87115F13A7B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8736BEFC-BC9F-443E-BF75-87115F13A7B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8736BEFC-BC9F-443E-BF75-87115F13A7B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{952EE9C4-DA80-4884-90F4-FA3C1D89FC77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{952EE9C4-DA80-4884-90F4-FA3C1D89FC77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{952EE9C4-DA80-4884-90F4-FA3C1D89FC77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{952EE9C4-DA80-4884-90F4-FA3C1D89FC77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB96AFAC-DC45-4F4B-9D49-7DBE5C47A69F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB96AFAC-DC45-4F4B-9D49-7DBE5C47A69F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB96AFAC-DC45-4F4B-9D49-7DBE5C47A69F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB96AFAC-DC45-4F4B-9D49-7DBE5C47A69F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9464D0D6-0CC1-4C7E-BA74-49D8A371B85B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9464D0D6-0CC1-4C7E-BA74-49D8A371B85B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9464D0D6-0CC1-4C7E-BA74-49D8A371B85B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9464D0D6-0CC1-4C7E-BA74-49D8A371B85B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E28050A-F650-4382-ACCE-C7F774780EFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E28050A-F650-4382-ACCE-C7F774780EFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E28050A-F650-4382-ACCE-C7F774780EFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E28050A-F650-4382-ACCE-C7F774780EFA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-TestWorker-09284f9e-bd1b-4d65-a4e3-be036db5c599</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Evently.Azure.ServiceBus\Evently.Azure.ServiceBus.csproj" />
+    <ProjectReference Include="..\Evently.Core\Evently.Core.csproj" />
+    <ProjectReference Include="..\Evently.Kafka\Evently.Kafka.csproj" />
+    <ProjectReference Include="..\Evently.Redis\Evently.Redis.csproj" />
+<!--    <ProjectReference Include="..\Evently.Azure.ServiceBus\Evently.Azure.ServiceBus.csproj" />-->
+<!--    <ProjectReference Include="..\Evently.Redis\Evently.Redis.csproj" />-->
+  </ItemGroup>
+</Project>
