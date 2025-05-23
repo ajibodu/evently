@@ -17,12 +17,12 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
     
     private IReadOnlyList<RedisConsumerConfiguration> PrepareConfigurations()
     {
-        var busConfigMap = new Dictionary<(Type, Type), RedisConsumerConfiguration>();
+        var busConfigMap = new Dictionary<string, RedisConsumerConfiguration>();
         if (context.TryGetBrokerConfiguration<RedisConsumerConfiguration>(out var busConfig))
         {
             busConfigMap = busConfig
                 .ToDictionary(
-                    k => (k.EventType, k.ConsumerType),
+                    k => k.ConsumerName,
                     k => new RedisConsumerConfiguration{
                         PreferredName = k.PreferredName ?? Collection.NameFormaterResolver().Format(k.EventType),
                         CreateIfNotExist = k.CreateIfNotExist,
@@ -32,7 +32,8 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
                         ConsumerName = k.ConsumerName,
                         PollingInterval = k.PollingInterval,
                         RetryConfiguration = k.RetryConfiguration,
-                        PreFetchCount = k.PreFetchCount
+                        PreFetchCount = k.PreFetchCount,
+                        
                     });
         }
         
@@ -42,7 +43,7 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
         if(context.TryGetBrokerConfiguration<BaseConsumerConfiguration>(out var consumerConfig))
         {
             var consumerConfigMap = consumerConfig
-                .ToDictionary(c => (c.EventType, c.ConsumerType), c => c);
+                .ToDictionary(c => c.ConsumerName, c => c);
             
             foreach (var kv in consumerConfigMap)
             {

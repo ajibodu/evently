@@ -16,39 +16,36 @@ var builder = Host.CreateApplicationBuilder(args);
 
 builder.Services.AddEvently((sp, ev) =>
 {
-    ev.WithRedis(sp, action =>
-    {
-        action.ConnectionString = "localhost:6379,abortConnect=false,connectRetry=5,connectTimeout=5000";
-        action.WithConsumerGroup("evently-redis-consumer-group")
-            .ConfigureConsumer<TestConsumer>()
-            .AddConsumer<AnotherEvent, AnotherEventConsumer>();
-    });
+    // ev.WithRedis(sp, action =>
+    // {
+    //     action.ConnectionString = "localhost:6379,abortConnect=false,connectRetry=5,connectTimeout=5000";
+    //     action.WithConsumerGroup("evently-redis-consumer-group")
+    //         .ConfigureConsumer<TestConsumer>()
+    //         .AddConsumer<AnotherEvent, AnotherEventConsumer>();
+    // });
     
-    Providers.SetNameFormatter(new SnakeCaseNameFormater());
-    
-    // ev
-    //     .AddConsumer<TestEvent, TestConsumer>()
-    //     .AddConsumer<AnotherEvent, AnotherEventConsumer>();
+    Providers.SetNameFormatter(new KebabCaseNameFormater());
 
-    ev.AddConsumersFromNamespaceContaining<TestConsumer>();
+    ev
+        .AddConsumer<TestEvent, TestConsumer>();
+        //.AddConsumer<AnotherEvent, AnotherEventConsumer>();
+
+    //ev.AddConsumersFromNamespaceContaining<TestConsumer>();
     //ev.AddAllConsumersInAssembly();
     
     ev.WithKafka(sp, action =>
     {
         action.BootStrapServers = "10.81.1.156:9092,10.81.1.179:9092,10.81.1.180:9092";
-        action.UserName = "kafka";
-        action.Password = "Temp@4321";
         action.Control = new ConsumerControl()
         {
             SessionTimeoutMs = 6000,
             RetryBackoffMs = 1000,
             MessageSendMaxRetries = 3,
         };
-        action.CreateTopicIfNotExist = true;
     
         action.WithConsumerGroup("evently-consumer-group")
-            .ConfigureConsumer<TestConsumer>("test-consumer");
-            //.AddConsumer<AnotherEvent, AnotherEventConsumer>("another-event-consumer");
+            .ConfigureConsumer<TestConsumer>(maxConsumer:2, createIfNotExistControl: new CreateIfNotExistControl(5, 3))
+            .AddConsumer<AnotherEvent, AnotherEventConsumer>("another-event-consumer", createIfNotExistControl: new CreateIfNotExistControl());
         
         action.WithProducers()
             .AddProducer<string, AnotherEvent>("topic");
@@ -56,25 +53,25 @@ builder.Services.AddEvently((sp, ev) =>
         action.WithRetry(new RetryConfiguration(RetryStrategy.ExponentialWithJitter, 3, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60)));
     });
     
-    ev.WithAzureServiceBus(sp, action =>
-    {
-        action.ConnectionString = "10.81.1.156:9092,10.81.1.179:9092,10.81.1.180:9092";
-        action.ServiceBusProcessorOptions = new ServiceBusProcessorOptions();
-        action.CreateTopicOrQueueIfNotExist = true;
-        
-        action.AddQueueConsumer<TestEvent, TestConsumer>("queue")
-            .AddTopicConsumer<AnotherEvent, AnotherEventConsumer>("topic", "subscription", ruleOption: f => f
-                .WithRule("Channel", new SqlRuleFilter(""))
-                .WithSqlEventTypeRule())
-            .AddQueueConsumer<TestEvent, TestConsumer>(retryConfiguration: new RetryConfiguration(RetryStrategy.Incremental, 3, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60)));
-        
-    //:TODO add implementation to setup queue forwader on a tapic (action.MapTopicToQueue<TEvent>("topic", "subscription")
-    
-        action.WithProducers()
-            .AddProducer<AnotherEvent>("topic");
-    
-        action.WithRetry(new RetryConfiguration(RetryStrategy.ExponentialWithJitter, 3, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60)));
-    });
+    // ev.WithAzureServiceBus(sp, action =>
+    // {
+    //     action.ConnectionString = "10.81.1.156:9092,10.81.1.179:9092,10.81.1.180:9092";
+    //     action.ServiceBusProcessorOptions = new ServiceBusProcessorOptions();
+    //     action.CreateTopicOrQueueIfNotExist = true;
+    //     
+    //     action.AddQueueConsumer<TestEvent, TestConsumer>("queue")
+    //         .AddTopicConsumer<AnotherEvent, AnotherEventConsumer>("topic", "subscription", ruleOption: f => f
+    //             .WithRule("Channel", new SqlRuleFilter(""))
+    //             .WithSqlEventTypeRule())
+    //         .AddQueueConsumer<TestEvent, TestConsumer>(retryConfiguration: new RetryConfiguration(RetryStrategy.Incremental, 3, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60)));
+    //     
+    // //:TODO add implementation to setup queue forwader on a tapic (action.MapTopicToQueue<TEvent>("topic", "subscription")
+    //
+    //     action.WithProducers()
+    //         .AddProducer<AnotherEvent>("topic");
+    //
+    //     action.WithRetry(new RetryConfiguration(RetryStrategy.ExponentialWithJitter, 3, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60)));
+    // });
 });
 
 var host = builder.Build();

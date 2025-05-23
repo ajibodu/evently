@@ -19,12 +19,12 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
     public bool CreateTopicOrQueueIfNotExist { get; set; }
     private IReadOnlyList<ServiceBusConsumerConfiguration> PrepareConfigurations()
     {
-        var busConfigMap = new Dictionary<(Type, Type), ServiceBusConsumerConfiguration>();
+        var busConfigMap = new Dictionary<string, ServiceBusConsumerConfiguration>();
         if (context.TryGetBrokerConfiguration<ServiceBusConsumerConfiguration>(out var busConfig))
         {
             busConfigMap = busConfig
                 .ToDictionary(
-                    k => (k.EventType, k.ConsumerType),
+                    k => k.ConsumerName,
                     k => new ServiceBusConsumerConfiguration{
                         TopicOrQueueName = k.TopicOrQueueName,
                         SubscriptionName = k.SubscriptionName,
@@ -44,7 +44,7 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
         if (context.TryGetBrokerConfiguration<BaseConsumerConfiguration>(out var consumerConfig))
         {
             var consumerConfigMap = consumerConfig
-                .ToDictionary(c => (c.EventType, c.ConsumerType), c => c);
+                .ToDictionary(c => c.ConsumerName, c => c);
             
             foreach (var kv in consumerConfigMap)
             {

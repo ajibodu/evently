@@ -8,16 +8,12 @@ public class Initializer(IKafkaTopicManager topicManager, Configurations.Configu
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (config.CreateTopicIfNotExist)
-        {
-            foreach (var kafkaConsumerConfiguration in config.KafkaConsumerConfigurations)
-            {
-                await topicManager.CreateTopicIfNotExistsAsync(config.BootStrapServers, kafkaConsumerConfiguration.TopicName!);
-            }
-        }
-        
         foreach (var kafkaConsumerConfiguration in config.KafkaConsumerConfigurations)
         {
+            if(kafkaConsumerConfiguration.CreateIfNotExistControl != null)
+            {
+                await topicManager.CreateTopicIfNotExistsAsync(config.BootStrapServers, kafkaConsumerConfiguration.TopicName!, kafkaConsumerConfiguration.CreateIfNotExistControl);
+            }
             await topicManager.CreateTopicIfNotExistsAsync(config.BootStrapServers, kafkaConsumerConfiguration.TopicName!.ToDlQ());
         }
     }

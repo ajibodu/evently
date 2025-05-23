@@ -20,16 +20,14 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
     internal string GroupId { get; set; } = Dns.GetHostName();
     public ConsumerControl Control { get; set; } = null!;
     
-    public bool CreateTopicIfNotExist { get; set; }
-    
     private IReadOnlyList<KafkaConsumerConfiguration> PrepareConfigurations()
     {
-        var busConfigMap = new Dictionary<(Type, Type), KafkaConsumerConfiguration>();
+        var busConfigMap = new Dictionary<string, KafkaConsumerConfiguration>();
         if (context.TryGetBrokerConfiguration<KafkaConsumerConfiguration>(out var busConfig))
         {
             busConfigMap = busConfig
                 .ToDictionary(
-                    k => (k.EventType, k.ConsumerType),
+                    k => k.ConsumerName,
                     k => new KafkaConsumerConfiguration{
                         TopicName = k.TopicName ?? Collection.NameFormaterResolver().Format(k.EventType),
                         CreateTopicIfNotExist = k.CreateTopicIfNotExist,
@@ -38,7 +36,8 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
                         ConsumerType = k.ConsumerType,
                         ConsumerName = k.ConsumerName,
                         RetryConfiguration = k.RetryConfiguration,
-                        ConsumerConfig = k.ConsumerConfig
+                        ConsumerConfig = k.ConsumerConfig,
+                        CreateIfNotExistControl = k.CreateIfNotExistControl
                     });
         }
         
@@ -47,7 +46,7 @@ public class Configuration(IEventlyContext context) : BaseBusConfiguration
         if(context.TryGetBrokerConfiguration<BaseConsumerConfiguration>(out var consumerConfig))
         {
             var consumerConfigMap = consumerConfig
-                .ToDictionary(c => (c.EventType, c.ConsumerType), c => c);
+                .ToDictionary(c => c.ConsumerName, c => c);
             
             foreach (var kv in consumerConfigMap)
             {

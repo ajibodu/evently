@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
+using Evently.Kafka.Configurations;
 using Microsoft.Extensions.Logging;
 
 namespace Evently.Kafka;
@@ -9,8 +10,7 @@ public interface IKafkaTopicManager
     Task CreateTopicIfNotExistsAsync(
         string bootstrapServers,
         string topicName,
-        int numPartitions = 1,
-        short replicationFactor = 1,
+        CreateIfNotExistControl? createIfNotExistControl = null,
         Dictionary<string, string>? config = null);
 }
 public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicManager
@@ -18,14 +18,14 @@ public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicM
     public async Task CreateTopicIfNotExistsAsync(
         string bootstrapServers,
         string topicName, 
-        int numPartitions = 1, 
-        short replicationFactor = 1,
+        CreateIfNotExistControl? createIfNotExistControl = null,
         Dictionary<string, string>? config = null)
     {
         using var adminClient = new AdminClientBuilder(new AdminClientConfig
         {
             BootstrapServers = bootstrapServers
         }).Build();
+        createIfNotExistControl ??= new CreateIfNotExistControl();
 
         try
         {
@@ -42,8 +42,8 @@ public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicM
                     new TopicSpecification
                     {
                         Name = topicName,
-                        NumPartitions = numPartitions,
-                        ReplicationFactor = replicationFactor,
+                        NumPartitions = createIfNotExistControl.NumberOfPartitions,
+                        ReplicationFactor = (short)createIfNotExistControl.ReplicationFactor,
                         Configs = config ?? new Dictionary<string, string>()
                     }
                 });

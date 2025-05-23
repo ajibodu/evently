@@ -18,22 +18,23 @@ public class ProducerBuilder(Configuration configuration)
 
     public void AddTopicProducer<TKey, TEvent>(string? topic, bool isDlQ) where TEvent : new()
     {
-        var fullName = typeof(TEvent).FullName;
-        ArgumentException.ThrowIfNullOrEmpty(fullName);
-        
         var producerConfig =  new ProducerConfig
         {
             BootstrapServers = configuration.BootStrapServers,
             ClientId = configuration.GroupId,
-            //SaslMechanism = SaslMechanism.Plain,
-            // SecurityProtocol = SecurityProtocol.SaslPlaintext,
-            // SaslUsername = configuration.UserName,
-            // SaslPassword = configuration.Password,
             Acks = Acks.All,
             MessageTimeoutMs = configuration.Control.SessionTimeoutMs,
             RetryBackoffMs = configuration.Control.RetryBackoffMs,
-            MessageSendMaxRetries = configuration.Control.MessageSendMaxRetries
+            MessageSendMaxRetries = configuration.Control.MessageSendMaxRetries,
         };
+        
+        if (!string.IsNullOrWhiteSpace(configuration.UserName) && !string.IsNullOrWhiteSpace(configuration.Password))
+        {
+            producerConfig.SaslMechanism = SaslMechanism.Plain;
+            producerConfig.SecurityProtocol = SecurityProtocol.SaslPlaintext;
+            producerConfig.SaslUsername = configuration.UserName;
+            producerConfig.SaslPassword = configuration.Password;
+        }
         
         var producer = new ProducerBuilder<TKey?, TEvent>(producerConfig)
             .SetValueSerializer(new NewtonsoftJsonSerializer<TEvent>())
