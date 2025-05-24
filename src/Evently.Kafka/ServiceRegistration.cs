@@ -18,6 +18,7 @@ public static class ServiceRegistration
         ArgumentNullException.ThrowIfNull(kafkaConfig.BootStrapServers);
 
         services.AddSingleton<IKafkaMessenger, KafkaMessenger>();
+        services.AddSingleton<IMessenger, KafkaMessenger>();
         
         services.AddSingleton<Configurations.Configuration>(_ => kafkaConfig);
             

@@ -9,14 +9,14 @@ namespace Evently.Kafka.Builders;
 
 public class ProducerBuilder(Configuration configuration)
 {
-    public ProducerBuilder AddProducer<TKey, TEvent>(string? topic = null, bool isDlQ = false) where TEvent : new()
+    public ProducerBuilder AddProducer<TKey, TEvent>(string? topic = null, bool isDlQ = false) where TEvent : class
     {
         AddTopicProducer<TKey, TEvent>(topic, isDlQ);
 
         return this;
     }
 
-    public void AddTopicProducer<TKey, TEvent>(string? topic, bool isDlQ) where TEvent : new()
+    public void AddTopicProducer<TKey, TEvent>(string? topic, bool isDlQ) where TEvent : class
     {
         var producerConfig =  new ProducerConfig
         {
@@ -43,7 +43,7 @@ public class ProducerBuilder(Configuration configuration)
         configuration.TopicProducers.Add(new TopicProducer()
         {
             EventType = typeof(TEvent),
-            SendAsync = async (evt, key, headers, cancellationToken) =>
+            SendAsync = async (key, evt,  headers, cancellationToken) =>
             {
                 if (evt is not TEvent typedEvent)
                     throw new InvalidCastException($"Expected type {typeof(TEvent).Name}, got {evt.GetType().Name}");

@@ -14,7 +14,7 @@ public class ConsumerBuilder(Configuration configuration, IEventlyContext contex
         ConsumerControl? control = null,
         RetryConfiguration? retryConfiguration = null,
         CreateIfNotExistControl? createIfNotExistControl = null)
-        where TEvent : new()
+        where TEvent : class
         where TConsumer : IConsumer<TEvent>
     {
         

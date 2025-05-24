@@ -36,7 +36,7 @@ public abstract class BaseConsumerService(
         if (consumeAsync == null)
             throw new InvalidOperationException("ConsumeAsync method not found.");
         
-        _ = Task.Run(async () =>
+        return Task.Run(async () =>
         {
             try
             {
@@ -53,8 +53,6 @@ public abstract class BaseConsumerService(
                 logger.LogError(ex, "Error processing event {EventName}", configuration.EventName);
             }
         }, stoppingToken);
-        
-        return Task.CompletedTask;
     }
 
     private async Task ProcessAsync(IBaseConsumerConfiguration configuration, object message, AsyncPolicy policy, CancellationToken stoppingToken)

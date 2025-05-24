@@ -11,7 +11,7 @@ namespace Evently.Kafka;
 
 public interface IKafkaMessenger : IMessenger
 {
-    Task SendAsync<T>(T message, object key, Headers? headers, CancellationToken cancellationToken);
+    Task SendAsync<T>(object key, T message, Headers? headers, CancellationToken cancellationToken);
 }
 
 public class KafkaMessenger(
@@ -21,13 +21,13 @@ public class KafkaMessenger(
 {
     public async Task SendAsync<T>(T message, CancellationToken cancellationToken)
     {
-        await SendAsync(message, null, [], cancellationToken);
+        await SendAsync(null, message, [], cancellationToken);
     }
     
-    public async Task SendAsync<T>(T message, object? key, Headers? headers, CancellationToken cancellationToken)
+    public async Task SendAsync<T>(object key, T message, Headers? headers, CancellationToken cancellationToken)
     {
         var current = producers.First(t => t.EventType == typeof(T) && t.IsDlQ == false);
-        await current.SendAsync(message, key, headers, cancellationToken);
+        await current.SendAsync(key, message, headers, cancellationToken);
         
         logger.LogDebug("Published message for {EventType}", current.EventType.FullName);
     }
@@ -41,7 +41,7 @@ public class KafkaMessenger(
             { "Ex-Message", Encoding.UTF8.GetBytes(exception.Message) },
             { "Ex-StackTrace", Encoding.UTF8.GetBytes(exception.StackTrace ?? "") }
         };
-        await current.SendAsync(message, null, headers, cancellationToken);
+        await current.SendAsync(null, message, headers, cancellationToken);
         
         logger.LogDebug("Published DLQ message for {EventType}", current.EventType.FullName);
     }
@@ -50,36 +50,52 @@ public class KafkaMessenger(
     {
         var registration = configuration.KafkaConsumerConfigurations.First(t => t.EventType == typeof(T));
 
-        using var consumer = new ConsumerBuilder<Ignore, T>(registration.ConsumerConfig)
-            .SetValueDeserializer(new NewtonsoftJsonDeserializer<T>())
-            .Build();
-        
-        consumer.Subscribe(registration.TopicName);
-        
         while (!cancellationToken.IsCancellationRequested)
         {
-            var consumeResult = new ConsumeResult<Ignore, T>();
             try
-            { 
-                consumeResult = consumer.Consume(cancellationToken);
-                if (consumeResult != null && consumeResult.Message.Value != null)
-                    await messageHandler(consumeResult.Message.Value);
-
-                if(registration.ConsumerConfig.EnableAutoCommit == false)
-                    consumer.Commit(consumeResult);
-            }
-            catch (ConsumeException ex)
             {
-                logger.LogError(ex, "Kafka consume error");
+                using var consumer = new ConsumerBuilder<Ignore, T>(registration.ConsumerConfig)
+                    .SetValueDeserializer(new NewtonsoftJsonDeserializer<T>())
+                    .Build();
+        
+                consumer.Subscribe(registration.TopicName);
+                
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var consumeResult = new ConsumeResult<Ignore, T>();
+                    try
+                    { 
+                        consumeResult = consumer.Consume(cancellationToken);
+                        if (consumeResult != null && consumeResult.Message.Value != null)
+                            await messageHandler(consumeResult.Message.Value);
+
+                        if(registration.ConsumerConfig.EnableAutoCommit == false)
+                            consumer.Commit(consumeResult);
+                    }
+                    catch (ConsumeException ex)
+                    {
+                        logger.LogError(ex, "Kafka consume error");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Kafka consume error. attempting to dlq...");
+                        var actualEx = ex is TargetInvocationException tie ? tie.InnerException : ex;
+                        if (consumeResult != null && consumeResult.Message.Value != null)
+                            await SendAsync(consumeResult.Message.Value, actualEx, cancellationToken);
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                logger.LogInformation("Cancellation requested");
             }
             catch (Exception ex)
             {
-                var actualEx = ex is TargetInvocationException tie ? tie.InnerException : ex;
-                if (consumeResult != null && consumeResult.Message.Value != null)
-                    await SendAsync(consumeResult.Message.Value, actualEx, cancellationToken);
+                logger.LogError(ex, "Unhandled Kafka consumer error. Restarting...");
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             }
+            
         }
-        
         throw new OperationCanceledException();
     }
 }
