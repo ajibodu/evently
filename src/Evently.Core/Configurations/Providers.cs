@@ -2,6 +2,7 @@ using System.Reflection;
 using Evently.Core.Builders;
 using Evently.Core.Context;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Evently.Core.Configurations;
 
@@ -21,6 +22,11 @@ public class Providers(IServiceCollection serviceCollection)
     public static void SetNameFormatter(INameFormater nameFormatter)
     {
         Collection.SetNameFormater(nameFormatter);
+    }
+    
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory)
+    {
+        Collection.SetLoggerFactory(loggerFactory);
     }
     
     public Providers AddConsumersFromNamespaceContaining<TConsumerMarker>(int consumersPerStream = 1, RetryConfiguration? retryConfiguration = null)

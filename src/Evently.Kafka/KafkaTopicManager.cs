@@ -21,10 +21,10 @@ public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicM
         CreateIfNotExistControl? createIfNotExistControl = null,
         Dictionary<string, string>? config = null)
     {
-        using var adminClient = new AdminClientBuilder(new AdminClientConfig
-        {
-            BootstrapServers = bootstrapServers
-        }).Build();
+        using var adminClient = new AdminClientBuilder(new AdminClientConfig { BootstrapServers = bootstrapServers })
+        .SetLogHandler((_, message) => KafkaLoggingHelper.LogKafkaMessage(message))
+        .SetErrorHandler((_, error) => KafkaLoggingHelper.LogKafkaError(error))
+        .Build();
         createIfNotExistControl ??= new CreateIfNotExistControl();
 
         try
@@ -57,7 +57,7 @@ public class KafkaTopicManager(ILogger<KafkaTopicManager> logger) : IKafkaTopicM
         }
         catch (KafkaException e)
         {
-            logger.LogError(e, $"An error occurred working with topics: {e.Message}");
+            logger.LogError(e, $"An error occurred working with topic: {topicName}");
         }
     }
 }

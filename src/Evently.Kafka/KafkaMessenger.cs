@@ -56,6 +56,8 @@ public class KafkaMessenger(
             {
                 using var consumer = new ConsumerBuilder<Ignore, T>(registration.ConsumerConfig)
                     .SetValueDeserializer(new NewtonsoftJsonDeserializer<T>())
+                    .SetLogHandler((_, message) => KafkaLoggingHelper.LogKafkaMessage(message))
+                    .SetErrorHandler((_, error) => KafkaLoggingHelper.LogKafkaError(error))
                     .Build();
         
                 consumer.Subscribe(registration.TopicName);
@@ -98,4 +100,18 @@ public class KafkaMessenger(
         }
         throw new OperationCanceledException();
     }
+    
+    private static LogLevel LogLevelFromKafka(SyslogLevel level)
+    {
+        return level switch
+        {
+            SyslogLevel.Emergency or SyslogLevel.Alert or SyslogLevel.Critical => LogLevel.Critical,
+            SyslogLevel.Error => LogLevel.Error,
+            SyslogLevel.Warning => LogLevel.Warning,
+            SyslogLevel.Notice or SyslogLevel.Info => LogLevel.Information,
+            SyslogLevel.Debug => LogLevel.Debug,
+            _ => LogLevel.Information
+        };
+    }
+
 }

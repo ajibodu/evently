@@ -38,6 +38,8 @@ public class ProducerBuilder(Configuration configuration)
         
         var producer = new ProducerBuilder<TKey?, TEvent>(producerConfig)
             .SetValueSerializer(new NewtonsoftJsonSerializer<TEvent>())
+            .SetLogHandler((_, message) => KafkaLoggingHelper.LogKafkaMessage(message))
+            .SetErrorHandler((_, error) => KafkaLoggingHelper.LogKafkaError(error))
             .Build();
         
         configuration.TopicProducers.Add(new TopicProducer()

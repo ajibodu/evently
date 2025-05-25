@@ -24,7 +24,11 @@ builder.Services.AddEvently((sp, ev) =>
     //         .AddConsumer<AnotherEvent, AnotherEventConsumer>();
     // });
     
+    var provider = sp.BuildServiceProvider();
+    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+    
     Providers.SetNameFormatter(new KebabCaseNameFormater());
+    Providers.SetLoggerFactory(loggerFactory);
 
     ev
         .AddConsumer<TestEvent, TestConsumer>();
